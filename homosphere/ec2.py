@@ -7,7 +7,7 @@ from math import ceil, log
 import boto3
 
 class VPC:
-    def __init__(self, name, network, region, aws_access_key = None, aws_secret_key = None, aws_profile = 'default'):
+    def __init__(self, name, network, region, tags = [], aws_access_key = None, aws_secret_key = None, aws_profile = 'default'):
         self.name = name
         self.ipv4network = ipaddress.IPv4Network(network)
         self.region = region

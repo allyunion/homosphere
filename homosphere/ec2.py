@@ -66,7 +66,7 @@ class VPC:
             title=self.data['Title'] + TITLE_CLEANUP_RE.subn('', region)[0],
             description="VPC ID of {} in {}".format(name, region),
             value=Ref(self.network['VPC']),
-            export=Export(Sub('${AWS::StackName}-VPCID"')))
+            export=Sub('${AWS::StackName}-VPCID"'))
         if aws_profile is not None:
             self.data['Session'] = boto3.Session(profile_name=aws_profile,
                                                  region_name=region)
@@ -80,6 +80,7 @@ class VPC:
                 region_name=region)
 
     def add_output(self, title, description, value, export):
+        """Safely add outputs to the template without duplicates"""
         if title not in self.data['Outputs']:
             self.data['Outputs'][title] = {}
             self.data['Outputs'][title]['Description'] = description
@@ -89,7 +90,7 @@ class VPC:
                 title=title,
                 Description=description,
                 Value=value,
-                Export=export)
+                Export=Export(export))
             self.data['Template'].add_output(
                 self.data['Outputs'][title]['Output'])
         else:
@@ -195,6 +196,14 @@ class VPC:
         self.network['Subnets'][zone]['Public'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
 
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PublicRouteTable',
+            description="Public Route Table ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(self.network['VPC']),
+            export=Sub('${{AWS::StackName}}-{}-PublicRouteTable"'.format(
+                zone)))
+
     def create_private_subnet(self, zone, ip_network):
         """Create private subnet and associated resources"""
         if not 'Public' in self.network['Subnets'][zone]:
@@ -241,6 +250,14 @@ class VPC:
         self.network['Subnets'][zone]['Private']['DefaultRoute'] = route
         self.network['Subnets'][zone]['Private'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
+
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PrivateRouteTable',
+            description="Private Route Table ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(self.network['VPC']),
+            export=Sub('${{AWS::StackName}}-{}-PrivateRouteTable"'.format(
+                zone)))
 
     def create_subnets(self):
         """Create all the public and private subnets"""

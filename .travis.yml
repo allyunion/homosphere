@@ -13,4 +13,4 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - python setup.py test
+  - find ./homosphere -name \*.py -exec pylint -r yes {} \;

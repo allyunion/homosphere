@@ -55,7 +55,9 @@ class VPC:
         self.data['Template'] = Template()
         self.network = {}
         self.network['VPC'] = troposphere.ec2.VPC(
-            title=self.data['Title'],
+            title=self.data['Title'] + TITLE_CLEANUP_RE.subn(
+                '', region)[0] + 'VPC',
+            template=self.data['Template'],
             CidrBlock=str(self.data['IPv4Network']),
             EnableDnsSupport=True,
             EnableDnsHostnames=True,
@@ -63,7 +65,8 @@ class VPC:
             Tags=[Tag(Key='Name', Value=name)] + self.data['Tags'])
         self.data['Outputs'] = {}
         self.add_output(
-            title=self.data['Title'] + TITLE_CLEANUP_RE.subn('', region)[0],
+            title=self.data['Title'] + TITLE_CLEANUP_RE.subn(
+                '', region)[0] + 'VPCID',
             description="VPC ID of {} in {}".format(name, region),
             value=Ref(self.network['VPC']),
             export=Sub('${AWS::StackName}-VPCID"'))
@@ -78,6 +81,15 @@ class VPC:
                 aws_access_key_id=aws_access_key,
                 aws_secret_access_key=aws_secret_key,
                 region_name=region)
+
+    def get_name(self):
+        return self.data['Name']
+
+    def get_ipv4network(self):
+        return self.data['IPv4Network']
+
+    def get_region(self):
+        return self.data['AWS Region']
 
     def add_output(self, title, description, value, export):
         """Safely add outputs to the template without duplicates"""
@@ -142,6 +154,7 @@ class VPC:
 
     def create_public_subnet(self, zone, ip_network):
         """Create the public subnet and associated resources"""
+        self.create_internet_gateway()
         zone_title = self.data['Title'] + TITLE_CLEANUP_RE.subn('', zone)[0]
         tag = Tag(Key='Name',
                   Value='{} {} Public'.format(self.data['Name'], zone))
@@ -271,3 +284,20 @@ class VPC:
             self.network['Subnets'][zone] = {}
             self.create_public_subnet(zone, str(next(subnets)))
             self.create_private_subnet(zone, str(next(subnets)))
+
+    def write_template(self, filename, file_format='yaml'):
+        """Write the template to a file"""
+        # Append the file_format if not the extension of the filename
+        if not re.match('.*\.{}$'.format(file_format), filename):
+            filename += "." + file_format
+
+        # Write the file            
+        with open(filename, 'w') as file_out:
+            if file_format in ('yml', 'yaml'):
+                file_out.write(self.data['Template'].to_yaml())
+            elif file_format in ('jsn', 'json'):
+                file_out.write(self.data['Template'].to_json())
+            else:
+                raise Exception(("write_template(filename={}, file_format={}):"
+                    " file_format must be either 'json' or 'yaml'".format(
+                        filename, file_format)))

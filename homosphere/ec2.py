@@ -61,11 +61,12 @@ class VPC:
             EnableDnsHostnames=True,
             InstanceTenancy='default',
             Tags=[Tag(Key='Name', Value=name)] + self.data['Tags'])
-        self.data['Template'].add_output(Output(
+        self.data['Outputs'] = {}
+        self.add_output(
             title=self.data['Title'] + TITLE_CLEANUP_RE.subn('', region)[0],
-            Description="VPC ID of {} in {}".format(name, region),
-            Value=Ref(self.network['VPC']),
-            Export=Export(Sub('${AWS::StackName}-VPCID"'))))
+            description="VPC ID of {} in {}".format(name, region),
+            value=Ref(self.network['VPC']),
+            export=Export(Sub('${AWS::StackName}-VPCID"')))
         if aws_profile is not None:
             self.data['Session'] = boto3.Session(profile_name=aws_profile,
                                                  region_name=region)
@@ -77,6 +78,22 @@ class VPC:
                 aws_access_key_id=aws_access_key,
                 aws_secret_access_key=aws_secret_key,
                 region_name=region)
+
+    def add_output(self, title, description, value, export):
+        if title not in self.data['Outputs']:
+            self.data['Outputs'][title] = {}
+            self.data['Outputs'][title]['Description'] = description
+            self.data['Outputs'][title]['Value'] = value
+            self.data['Outputs'][title]['Export'] = export
+            self.data['Outputs'][title]['Output'] = Output(
+                title=title,
+                Description=description,
+                Value=value,
+                Export=export)
+            self.data['Template'].add_output(
+                self.data['Outputs'][title]['Output'])
+        else:
+            raise Exception('{} is already an exported resource'.format(title))
 
 
     def get_availability_zones(self):

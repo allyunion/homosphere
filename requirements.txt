@@ -1,4 +1,4 @@
-astroid==1.6.3
+astroid>=1.6
 awacs==0.7.2
 backcall==0.1.0
 boto3==1.7.10
@@ -18,7 +18,7 @@ pickleshare==0.7.4
 prompt-toolkit==1.0.15
 ptyprocess==0.5.2
 Pygments==2.2.0
-pylint==1.8.4
+pylint>=1.7
 python-dateutil==2.7.2
 PyYAML==3.12
 s3transfer==0.1.13

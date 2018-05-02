@@ -83,12 +83,15 @@ class VPC:
                 region_name=region)
 
     def get_name(self):
+        """Returns the name of the VPC"""
         return self.data['Name']
 
     def get_ipv4network(self):
+        """Returns the IPv4 Network"""
         return self.data['IPv4Network']
 
     def get_region(self):
+        """Returns the region"""
         return self.data['AWS Region']
 
     def add_output(self, title, description, value, export):
@@ -113,10 +116,16 @@ class VPC:
         """Populate availability zone data"""
         if not self.data['Availability Zones']:
             client = self.data['Session'].client('ec2')
-            self.data['Availability Zones'] = \
-                    [item['ZoneName']
-                     for item in client.describe_availability_zones()[
-                         'AvailabilityZones']]
+            try:
+                self.data['Availability Zones'] = \
+                        [item['ZoneName']
+                         for item in client.describe_availability_zones()[
+                             'AvailabilityZones']]
+            except Exception as exception:
+                raise Exception(
+                    ('Exception occurred in the '
+                     'following region: {}').format(
+                         self.data['AWS Region'])) from exception
 
     def calculate_subnet_prefixlen(self):
         """Divide up the network and calculate the prefix len for the subnets"""
@@ -288,10 +297,10 @@ class VPC:
     def write_template(self, filename, file_format='yaml'):
         """Write the template to a file"""
         # Append the file_format if not the extension of the filename
-        if not re.match('.*\.{}$'.format(file_format), filename):
+        if not re.match(r'.*\.{}$'.format(file_format), filename):
             filename += "." + file_format
 
-        # Write the file            
+        # Write the file
         with open(filename, 'w') as file_out:
             if file_format in ('yml', 'yaml'):
                 file_out.write(self.data['Template'].to_yaml())
@@ -299,5 +308,5 @@ class VPC:
                 file_out.write(self.data['Template'].to_json())
             else:
                 raise Exception(("write_template(filename={}, file_format={}):"
-                    " file_format must be either 'json' or 'yaml'".format(
-                        filename, file_format)))
+                                 " file_format must be either 'json' or 'yaml'".format(
+                                     filename, file_format)))

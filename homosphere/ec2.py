@@ -223,7 +223,7 @@ class VPC:
             title=self.data['Title'] + zone_title + 'PublicRouteTable',
             description="Public Route Table ID of {} in {}".format(
                 self.data['Name'], zone),
-            value=Ref(self.network['VPC']),
+            value=Ref(routetable),
             export=Sub('${{AWS::StackName}}-{}-PublicRouteTable'.format(
                 zone)))
 
@@ -279,7 +279,7 @@ class VPC:
             title=self.data['Title'] + zone_title + 'PrivateRouteTable',
             description="Private Route Table ID of {} in {}".format(
                 self.data['Name'], zone),
-            value=Ref(self.network['VPC']),
+            value=Ref(routetable),
             export=Sub('${{AWS::StackName}}{}PrivateRouteTable'.format(
                 zone)))
 

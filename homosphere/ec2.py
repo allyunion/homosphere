@@ -64,12 +64,12 @@ class VPC:
             InstanceTenancy='default',
             Tags=[Tag(Key='Name', Value=name)] + self.data['Tags'])
         self.data['Outputs'] = {}
-        #self.add_output(
-        #    title=self.data['Title'] + TITLE_CLEANUP_RE.subn(
-        #        '', region)[0] + 'VPCID',
-        #    description="VPC ID of {} in {}".format(name, region),
-        #    value=Ref(self.network['VPC']),
-        #    export=Sub('${AWS::StackName}-VPCID"'))
+        self.add_output(
+            title=self.data['Title'] + TITLE_CLEANUP_RE.subn(
+                '', region)[0] + 'VPCID',
+            description="VPC ID of {} in {}".format(name, region),
+            value=Ref(self.network['VPC'].title),
+            export=Sub('${{AWS::StackName}}-{}-VPCID'.format(region)))
         if aws_profile is not None:
             self.data['Session'] = boto3.Session(profile_name=aws_profile,
                                                  region_name=region)
@@ -106,8 +106,8 @@ class VPC:
                 Description=description,
                 Value=value,
                 Export=Export(export))
-            #self.data['Template'].add_output(
-            #    self.data['Outputs'][title]['Output'])
+            self.data['Template'].add_output(
+                self.data['Outputs'][title]['Output'])
         else:
             raise Exception('{} is already an exported resource'.format(title))
 
@@ -219,13 +219,13 @@ class VPC:
         self.network['Subnets'][zone]['Public'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
 
-        #self.add_output(
-        #    title=self.data['Title'] + zone_title + 'PublicRouteTable',
-        #    description="Public Route Table ID of {} in {}".format(
-        #        self.data['Name'], zone),
-        #    value=Ref(self.network['VPC']),
-        #    export=Sub('${{AWS::StackName}}-{}-PublicRouteTable"'.format(
-        #        zone)))
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PublicRouteTable',
+            description="Public Route Table ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(self.network['VPC']),
+            export=Sub('${{AWS::StackName}}-{}-PublicRouteTable'.format(
+                zone)))
 
     def create_private_subnet(self, zone, ip_network):
         """Create private subnet and associated resources"""
@@ -275,13 +275,13 @@ class VPC:
         self.network['Subnets'][zone]['Private'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
 
-        #self.add_output(
-        #    title=self.data['Title'] + zone_title + 'PrivateRouteTable',
-        #    description="Private Route Table ID of {} in {}".format(
-        #        self.data['Name'], zone),
-        #    value=Ref(self.network['VPC']),
-        #    export=Sub('${{AWS::StackName}}{}PrivateRouteTable"'.format(
-        #        zone)))
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PrivateRouteTable',
+            description="Private Route Table ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(self.network['VPC']),
+            export=Sub('${{AWS::StackName}}{}PrivateRouteTable'.format(
+                zone)))
 
     def create_subnets(self):
         """Create all the public and private subnets"""

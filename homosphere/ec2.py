@@ -219,6 +219,15 @@ class VPC:
         self.network['Subnets'][zone]['Public'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
 
+        # Export Public Subnet ID
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PublicSubnet',
+            description="Public Subnet ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(subnet),
+            export=Sub('${{AWS::StackName}}-{}-PublicSubnet'.format(
+                zone)))
+        # Export Public Route Table ID
         self.add_output(
             title=self.data['Title'] + zone_title + 'PublicRouteTable',
             description="Public Route Table ID of {} in {}".format(
@@ -275,6 +284,15 @@ class VPC:
         self.network['Subnets'][zone]['Private'][
             'SubnetRouteTableAssociation'] = subnetroutetableassociation
 
+        # Export Private Subnet ID
+        self.add_output(
+            title=self.data['Title'] + zone_title + 'PrivateSubnet',
+            description="Private Subnet ID of {} in {}".format(
+                self.data['Name'], zone),
+            value=Ref(subnet),
+            export=Sub('${{AWS::StackName}}{}PrivateSubnet'.format(
+                zone)))
+        # Export Private Route Table ID
         self.add_output(
             title=self.data['Title'] + zone_title + 'PrivateRouteTable',
             description="Private Route Table ID of {} in {}".format(

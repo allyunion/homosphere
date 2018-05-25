@@ -253,7 +253,7 @@ class VPC:
             template=self.data['Template'],
             AvailabilityZone=zone,
             CidrBlock=ip_network,
-            MapPublicIpOnLaunch=True,
+            MapPublicIpOnLaunch=False,
             Tags=[tag] + self.data['Tags'],
             VpcId=Ref(self.network['VPC']))
         tag = Tag(Key='Name',
